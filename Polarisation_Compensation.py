@@ -285,7 +285,7 @@ def find_nearest(array, value):
     return array[idx]
 
 # Polarimeter Function
-def Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast):
+def Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast, V_back):
     print('Measure polarization')
     pos = np.empty(shape=(1, 0))
     voltage = np.empty(shape=(1, 0))
@@ -304,7 +304,7 @@ def Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast):
     for j in range(N):
         pos = np.append(pos, -wp_mount.GetPosition()*np.pi/180)     # measure position in rad
         # measure voltage of photodiode
-        voltage = np.append(voltage, np.asarray(task.read(number_of_samples_per_channel=1)))
+        voltage = np.append(voltage, np.asarray(task.read(number_of_samples_per_channel=1))-V_back)
     # disconnect from photodiode
     task.close()
     task = None
@@ -393,7 +393,7 @@ def Compensate(parameters,S_dis, S_undis, retardance, volt, j):
     return retardance, volt, S_dis
 
 # Fine Tuning function 
-def Fine_Tuning(parameters, fidelity, S_undis, retardance, volt, try_step, i, home_step, N, angle_fast,stopping_threshold):
+def Fine_Tuning(parameters, fidelity, S_undis, retardance, volt, try_step, i, home_step, N, angle_fast,stopping_threshold, V_back):
     # fine tune applied voltages for all 4 LCVRs
     for z in range(4):
         if fidelity[-1] > stopping_threshold:
@@ -415,7 +415,7 @@ def Fine_Tuning(parameters, fidelity, S_undis, retardance, volt, try_step, i, ho
         sleep(0.1)
 
         # Measure new polarisation
-        parameters, fidelity, i = Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast)
+        parameters, fidelity, i = Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast, V_back)
 
         if fidelity[-1] > stopping_threshold:
             break
@@ -434,7 +434,7 @@ def Fine_Tuning(parameters, fidelity, S_undis, retardance, volt, try_step, i, ho
             sleep(0.1)
 
             # measure again
-            parameters, fidelity, i = Polarimeter( parameters, fidelity, S_undis, i, home_step, N, angle_fast)
+            parameters, fidelity, i = Polarimeter( parameters, fidelity, S_undis, i, home_step, N, angle_fast, V_back)
 
             if fidelity[-1] > stopping_threshold:
                 break
@@ -467,7 +467,7 @@ def Fine_Tuning(parameters, fidelity, S_undis, retardance, volt, try_step, i, ho
             fg_2.set_amplitude(channel=z-1, value=volt[z, -1])
         sleep(0.1)
 
-        parameters, fidelity, i = Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast)
+        parameters, fidelity, i = Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast, V_back)
 
         if fidelity[-1] > stopping_threshold:
             break
@@ -486,7 +486,7 @@ def Fine_Tuning(parameters, fidelity, S_undis, retardance, volt, try_step, i, ho
                 fg_2.set_amplitude(channel=z-1, value=volt[z, -1])
             sleep(0.1)
 
-            parameters, fidelity, i = Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast)
+            parameters, fidelity, i = Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast, V_back)
 
             if fidelity[-1] > stopping_threshold:
                 break
@@ -534,6 +534,10 @@ data_LC_1 = np.genfromtxt('Data_LC/Compensation_LC_1.csv',skip_header=1, delimit
 data_LC_2 = np.genfromtxt('Data_LC/Compensation_LC_2.csv',skip_header=1, delimiter=',', dtype=None)
 data_LC_3 = np.genfromtxt('Data_LC/Compensation_LC_3.csv',skip_header=1, delimiter=',', dtype=None)
 data_LC_4 = np.genfromtxt('Data_LC/Compensation_LC_5.csv',skip_header=1, delimiter=',', dtype=None)
+
+# load background voltage
+data_b = np.genfromtxt('Data_background.csv', skip_header=1,delimiter=',', dtype=None) # select correct backgrond voltage file
+V_back = np.mean(data_b[:]) 
 
 # Connect to the motor
 wp_mount = KDC101(8)      
@@ -597,7 +601,7 @@ sleep(0.1)
 i = 0                               # Set measurement counter to zero
 
 # Measure polarisation
-parameters, fidelity, i = Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast)
+parameters, fidelity, i = Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast, V_back)
 
 j = 0 # counter for iterations before fine tuning, compensation stops, when j == 10 -> no solution can be found
 while fidelity[-1] < finetuning_threshold:
@@ -610,7 +614,7 @@ while fidelity[-1] < finetuning_threshold:
     fg_2.set_amplitude(channel=2, value=volt[3, -1])
     sleep(0.1)
     # Measure polarisation
-    parameters, fidelity, i = Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast)
+    parameters, fidelity, i = Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast, V_back)
     j = j+1
     if j == 10:
         break
@@ -618,7 +622,7 @@ while fidelity[-1] < finetuning_threshold:
 for k in range(rounds):
     print('Fine Tuning, round:', k+1)
     # tries little voltage adjustments for all LCVRs
-    parameters, fidelity, retardance, volt, i = Fine_Tuning(parameters, fidelity, S_undis, retardance, volt, try_step, i, home_step, N, angle_fast,stopping_threshold)  
+    parameters, fidelity, retardance, volt, i = Fine_Tuning(parameters, fidelity, S_undis, retardance, volt, try_step, i, home_step, N, angle_fast,stopping_threshold, V_back)  
 
 print('Finial fidelity: ', fidelity[-1])
  
