@@ -365,7 +365,7 @@ def func_Comp(delta, delta4, s_dis, s_undis): # eq. 25, M_LCVR * S_dis - S_undis
             s_dis[3] * (-c(delta4)*d(delta[0])*d(delta[2]) + c(delta[0])*(c(delta[1])*c(delta[2])*c(delta4)-d(delta[1])*d(delta4))) - s_undis[3]]
 
 # Compensation Calculation
-def Compensate(parameters,S_dis, S_undis, retardance, volt, j):
+def Compensate(parameters,S_dis, S_undis, retardance, volt, j, min_ret, max_ret):
     print('Calculate Compensation, Try number ', j+1)
     ret = np.empty(shape=(1, 0))
     # get actual disturbed input light
@@ -376,11 +376,11 @@ def Compensate(parameters,S_dis, S_undis, retardance, volt, j):
     
     # get retardances in desired range -> should be between 1/5 pi and 11/5 pi for the used LCVRs
     for p in range(3):
-        if ret[p] < 1/5 * np.pi:
-            ret[p] = ret[p] + (math.ceil((np.abs(ret[p]) + 1/5 *np.pi)/(2 * np.pi))) * 2 * np.pi
+        if ret[p] < min_ret * np.pi:
+            ret[p] = ret[p] + (math.ceil((np.abs(ret[p]) + min_ret *np.pi)/(2 * np.pi))) * 2 * np.pi
 
-        if ret[p] > 11/5 * np.pi:
-            ret[p] = ret[p] - (math.ceil((ret[p] - 11/5 * np.pi)/(2 * np.pi))) * 2 * np.pi
+        if ret[p] > max_ret * np.pi:
+            ret[p] = ret[p] - (math.ceil((ret[p] - max_ret * np.pi)/(2 * np.pi))) * 2 * np.pi
 
     # save new retardances (LCVR 4 stays the same)
     retardance = np.append(retardance, np.array([ret[0], ret[1], ret[2], retardance[3, -1]]).reshape(4, 1), axis=1)
@@ -515,6 +515,10 @@ N = 310                                 # number of samples per polarization mea
 home_step = 5
 angle_fast = 74.42363808*np.pi/180      # angle of fast axis of rotating QWP in rad
 
+# min and max retardanes of LCVRs in pi, max_ret - min_ret should be greater than 2
+min_ret = 1/5  # minimum possible retardance of LCVRs
+max_ret = 11/5  # minimum possible retardance of LCVRs
+
 finetuning_threshold = 0.97 # fidelity threshold after which the fine tuning starts
 stopping_threshold = 0.995  # fidelity threshold after which the compensation stops immediatily 
 rounds = 1                              # number of rounds the fine tuning goes through all LCVRs
@@ -606,7 +610,7 @@ parameters, fidelity, i = Polarimeter(parameters, fidelity, S_undis, i, home_ste
 j = 0 # counter for iterations before fine tuning, compensation stops, when j == 10 -> no solution can be found
 while fidelity[-1] < finetuning_threshold:
     # Calculate retardances and voltages
-    retardance, volt, S_dis = Compensate(parameters, S_dis, S_undis, retardance, volt, j)
+    retardance, volt, S_dis = Compensate(parameters, S_dis, S_undis, retardance, volt, j, min_ret, max_ret)
     # apply voltages
     fg_1.set_amplitude(channel=1, value=volt[0, -1])
     fg_1.set_amplitude(channel=2, value=volt[1, -1])
