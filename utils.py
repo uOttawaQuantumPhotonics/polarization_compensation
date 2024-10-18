@@ -15,8 +15,6 @@ from time import sleep
 import jds6600
 plt.rcParams.update({'font.size': 22})
 
-# Script for polarization compensation with 4 LCVRs, where the last one is just used during fine tuning
-
 # Fuctions to controll Rotation Motor
 # you will need to download and instal =l Thorlabs APT software if you do not already have it
 # after installation of APT, open anaconda prompt and execute the following command
