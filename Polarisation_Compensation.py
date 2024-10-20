@@ -117,7 +117,7 @@ sleep(0.1)
 i = 0                               # Set measurement counter to zero
 
 # Measure polarisation
-parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, DAQ_path, wp_mount, home_step, N)
+parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step, N)
 
 j = 0 # counter for iterations before fine tuning, compensation stops, when j == 10 -> no solution can be found
 while fidelity[-1] < finetuning_threshold:
@@ -130,7 +130,7 @@ while fidelity[-1] < finetuning_threshold:
     fg_2.set_amplitude(channel=2, value=volt[3, -1])
     sleep(0.1)
     # Measure polarisation
-    parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, DAQ_path, wp_mount, home_step, N)
+    parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step, N)
     j = j+1
     if j == 10:
         break
