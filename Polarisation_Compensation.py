@@ -19,7 +19,7 @@ plt.rcParams.update({'font.size': 22})
 # Script for polarization compensation with 4 LCVRs, where the last one is just used during fine tuning
 # Running the Compensation, Input parameters:
 S_undis = np.array([1,np.sqrt(1/3), np.sqrt(1/3), -np.sqrt(1/3)])        # desired undisturbed state
-start_ret = np.pi                     # starting retardance for all 4 LCs
+start_ret = np.pi                     # starting retardance for all 4 LCVRs
 
 N = 310                                 # number of samples per polarization measurement
 # number of measuemens after which the motor is homed again
