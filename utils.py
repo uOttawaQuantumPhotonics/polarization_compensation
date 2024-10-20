@@ -290,7 +290,7 @@ class Compensation():
         return array[idx]
 
     # Polarimeter Function
-    def Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, home_step=5, N=310):
+    def Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step=5, N=310):
         """ This function measures and calculated the Stokes polarization parameters.
             
             ARGUMENTS:
@@ -318,7 +318,7 @@ class Compensation():
             print('Rotation mount is homed!')
 
         task = nidaqmx.Task("task")                           # connect to photodiode
-        task.ai_channels.add_ai_voltage_chan("Dev2/ai1", min_val=0, max_val=10)  # change "Dev2/ai1" to correct DAQ path
+        task.ai_channels.add_ai_voltage_chan(DAQ_path, min_val=0, max_val=10)  # change "Dev2/ai1" to correct DAQ path
 
         for j in range(N):
             pos = np.append(pos, -wp_mount.GetPosition()*np.pi/180)     # measure position in rad
@@ -436,7 +436,7 @@ class Compensation():
         return retardance, volt, S_dis
 
     # Fine Tuning function 
-    def Fine_Tuning(parameters, fidelity, S_undis, retardance, volt, try_step, i, home_step, N, angle_fast,stopping_threshold, V_back, fg_1, fg_2, data_LC_1, data_LC_2, data_LC_3, data_LC_4, wp_mount):
+    def Fine_Tuning(parameters, fidelity, S_undis, retardance, volt, try_step, i, home_step, N, angle_fast,stopping_threshold, V_back, fg_1, fg_2, data_LC_1, data_LC_2, data_LC_3, data_LC_4, wp_mount, DAQ_path):
         """ Function used for the fine tuning after the compensation
 
             ARGUMENTS:
@@ -481,8 +481,8 @@ class Compensation():
                 fg_2.set_amplitude(channel=z-1, value=volt[z, -1])
             sleep(0.1)
 
-            # Measure new polarisation
-            parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast, V_back, wp_mount)
+            # Measure new polarisation DAQ_path,
+            parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step, N)
 
             if fidelity[-1] > stopping_threshold:
                 break
@@ -501,7 +501,7 @@ class Compensation():
                 sleep(0.1)
 
                 # measure again
-                parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast, V_back, wp_mount)
+                parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step, N)
 
                 if fidelity[-1] > stopping_threshold:
                     break
@@ -534,7 +534,7 @@ class Compensation():
                 fg_2.set_amplitude(channel=z-1, value=volt[z, -1])
             sleep(0.1)
 
-            parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast, V_back, wp_mount)
+            parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step, N)
 
             if fidelity[-1] > stopping_threshold:
                 break
@@ -553,7 +553,7 @@ class Compensation():
                     fg_2.set_amplitude(channel=z-1, value=volt[z, -1])
                 sleep(0.1)
 
-                parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast, V_back, wp_mount)
+                parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step, N)
 
                 if fidelity[-1] > stopping_threshold:
                     break
