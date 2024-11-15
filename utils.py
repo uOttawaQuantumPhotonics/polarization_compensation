@@ -277,10 +277,11 @@ class KDC101():
 
 # Generel Functions
 # function for finding nearest element to a value in an array
-
 class Compensation():
+    def __init__(self):
+        pass   
 
-    def find_nearest(array, value): 
+    def find_nearest(self, array, value): 
         """
         This function finds the position of the element in the array that is closest to the value.
         """
@@ -290,7 +291,7 @@ class Compensation():
         return array[idx]
 
     # Polarimeter Function
-    def Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step=5, N=310):
+    def Polarimeter(self, parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step=5, N=310):
         """ This function measures and calculated the Stokes polarization parameters.
             
             ARGUMENTS:
@@ -329,7 +330,7 @@ class Compensation():
         task = None
 
         # find rotation position 2 pi later
-        phi_last = int(np.where(pos[0:N] == Compensation.find_nearest(pos[0:N], pos[0]+2*np.pi))[0])
+        phi_last = int(np.where(pos[0:N] == self.find_nearest(pos[0:N], pos[0]+2*np.pi))[0])
 
         A = 2/len(voltage[0:phi_last])*np.sum(voltage[0:phi_last])                # calculate parameters
         B = 4/len(voltage[0:phi_last])*np.sum(voltage[0:phi_last]* np.sin(2*(pos[:phi_last]+angle_fast)))
@@ -350,7 +351,7 @@ class Compensation():
 
     # Compensation Function
 
-    def all_LC(delta): # matrix of all 4 LCs
+    def all_LC(self, delta): # matrix of all 4 LCs
         """ This function caluculates the Mueller matrix for all 4 LCVRs
             
             ARGUMENTS:
@@ -370,7 +371,7 @@ class Compensation():
                 -np.cos(delta[1])*np.cos(delta[2])*np.cos(delta[3])*np.sin(delta[0]) - np.cos(delta[0])*np.cos(delta[3])*np.sin(delta[2]) + np.sin(delta[0])*np.sin(delta[1])*np.sin(delta[3]),
                 -np.cos(delta[3])*np.sin(delta[0])*np.sin(delta[2]) + np.cos(delta[0])*(np.cos(delta[1])*np.cos(delta[2])*np.cos(delta[3])-np.sin(delta[1])*np.sin(delta[3]))]])
 
-    def func_Comp(delta, delta4, s_dis, s_undis):
+    def func_Comp(self, delta, delta4, s_dis, s_undis):
         """ Function used for calculating the desired retardances. 
             eq. 25, M_LCVR * S_dis - S_undis = 0, retardence of the 4th LCVR doesnt change
 
@@ -393,7 +394,7 @@ class Compensation():
                 s_dis[3] * (-np.cos(delta4)*np.sin(delta[0])*np.sin(delta[2]) + np.cos(delta[0])*(np.cos(delta[1])*np.cos(delta[2])*np.cos(delta4)-np.sin(delta[1])*np.sin(delta4))) - s_undis[3]]
 
     # Compensation Calculation
-    def Compensate(parameters,S_dis, S_undis, retardance, volt, j, min_ret, max_ret, data_LC_1, data_LC_2, data_LC_3):
+    def Compensate(self, parameters,S_dis, S_undis, retardance, volt, j, min_ret, max_ret, data_LC_1, data_LC_2, data_LC_3):
         """ Function used for calculating the desired voltages given the disturbed polarization state and the characterizations of the LCVRs
 
             ARGUMENTS:
@@ -412,10 +413,10 @@ class Compensation():
         print('Calculate Compensation, Try number ', j+1)
         ret = np.empty(shape=(1, 0))
         # get actual disturbed input light
-        S_dis = np.append(S_dis,np.transpose(Compensation.all_LC(retardance[:, -1]))@ parameters[:, -1].reshape(4,1),axis=1)
+        S_dis = np.append(S_dis,np.transpose(self.all_LC(retardance[:, -1]))@ parameters[:, -1].reshape(4,1),axis=1)
 
         # calculate needed retardances for LCs 1-3
-        ret = fsolve(Compensation.func_Comp, x0=(np.pi, np.pi, np.pi), args=(retardance[3, -1], S_dis[:,-1], S_undis))  
+        ret = fsolve(self.func_Comp, x0=(np.pi, np.pi, np.pi), args=(retardance[3, -1], S_dis[:,-1], S_undis))  
         
         # get retardances in desired range -> should be between 1/5 pi and 11/5 pi for the used LCVRs
         for p in range(3):
@@ -429,14 +430,14 @@ class Compensation():
         retardance = np.append(retardance, np.array([ret[0], ret[1], ret[2], retardance[3, -1]]).reshape(4, 1), axis=1)
 
         # find right voltages (LCVR 4 stays the same)
-        volt = np.append(volt, np.array([data_LC_1[:, 0][np.where(data_LC_1[:, 1] == Compensation.find_nearest(data_LC_1[:, 1], ret[0]))[0][0]],
-                                        data_LC_2[:, 0][np.where(data_LC_2[:, 1] == Compensation.find_nearest(data_LC_2[:, 1], ret[1]))[0][0]],
-                                        data_LC_3[:, 0][np.where(data_LC_3[:, 1] == Compensation.find_nearest(data_LC_3[:, 1], ret[2]))[0][0]],
+        volt = np.append(volt, np.array([data_LC_1[:, 0][np.where(data_LC_1[:, 1] == self.find_nearest(data_LC_1[:, 1], ret[0]))[0][0]],
+                                        data_LC_2[:, 0][np.where(data_LC_2[:, 1] == self.find_nearest(data_LC_2[:, 1], ret[1]))[0][0]],
+                                        data_LC_3[:, 0][np.where(data_LC_3[:, 1] == self.find_nearest(data_LC_3[:, 1], ret[2]))[0][0]],
                                         volt[3, -1]]).reshape(4, 1), axis=1)
         return retardance, volt, S_dis
 
     # Fine Tuning function 
-    def Fine_Tuning(parameters, fidelity, S_undis, retardance, volt, try_step, i, home_step, N, angle_fast,stopping_threshold, V_back, fg_1, fg_2, data_LC_1, data_LC_2, data_LC_3, data_LC_4, wp_mount, DAQ_path):
+    def Fine_Tuning(self,parameters, fidelity, S_undis, retardance, volt, try_step, i, home_step, N, angle_fast,stopping_threshold, V_back, fg_1, fg_2, data_LC_1, data_LC_2, data_LC_3, data_LC_4, wp_mount):
         """ Function used for the fine tuning after the compensation
 
             ARGUMENTS:
@@ -470,10 +471,10 @@ class Compensation():
             # try a higher voltage
             volt = np.append(volt, (np.array([volt[0, -1], volt[1, -1], volt[2, -1], volt[3, -1]]) + (np.arange(4) == z) * try_step).reshape(-1, 1), axis=1)
             # find corresponding retardance
-            retardance = np.append(retardance, np.array([data_LC_1[:, 1][np.where(data_LC_1[:, 0] == Compensation.find_nearest(data_LC_1[:, 0], volt[0, -1]))[0][0]],
-                                                        data_LC_2[:, 1][np.where(data_LC_2[:, 0] == Compensation.find_nearest(data_LC_2[:, 0], volt[1, -1]))[0][0]],
-                                                        data_LC_3[:, 1][np.where(data_LC_3[:, 0] == Compensation.find_nearest(data_LC_3[:, 0], volt[2, -1]))[0][0]],
-                                                        data_LC_4[:, 1][np.where(data_LC_4[:, 0] == Compensation.find_nearest(data_LC_4[:, 0], volt[3, -1]))[0][0]]]).reshape(4, 1), axis=1)
+            retardance = np.append(retardance, np.array([data_LC_1[:, 1][np.where(data_LC_1[:, 0] == self.find_nearest(data_LC_1[:, 0], volt[0, -1]))[0][0]],
+                                                        data_LC_2[:, 1][np.where(data_LC_2[:, 0] == self.find_nearest(data_LC_2[:, 0], volt[1, -1]))[0][0]],
+                                                        data_LC_3[:, 1][np.where(data_LC_3[:, 0] == self.find_nearest(data_LC_3[:, 0], volt[2, -1]))[0][0]],
+                                                        data_LC_4[:, 1][np.where(data_LC_4[:, 0] == self.find_nearest(data_LC_4[:, 0], volt[3, -1]))[0][0]]]).reshape(4, 1), axis=1)
             # apply new voltage
             if z < 2:
                 fg_1.set_amplitude(channel=z+1, value=volt[z, -1])
@@ -481,8 +482,8 @@ class Compensation():
                 fg_2.set_amplitude(channel=z-1, value=volt[z, -1])
             sleep(0.1)
 
-            # Measure new polarisation DAQ_path,
-            parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step, N)
+            # Measure new polarisation
+            parameters, fidelity, i = self.Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast, V_back, wp_mount)
 
             if fidelity[-1] > stopping_threshold:
                 break
@@ -490,10 +491,10 @@ class Compensation():
             while fidelity[-1] >= fidelity[-2]: # keep going up as long as the fidelity gets higher
                 print('Fidelity got higher')
                 volt = np.append(volt, (np.array([volt[0, -1], volt[1, -1], volt[2, -1], volt[3, -1]]) + (np.arange(4) == z) * try_step).reshape(-1, 1), axis=1)
-                retardance = np.append(retardance, np.array([data_LC_1[:, 1][np.where(data_LC_1[:, 0] == Compensation.find_nearest(data_LC_1[:, 0], volt[0, -1]))[0][0]],
-                                                            data_LC_2[:, 1][np.where(data_LC_2[:, 0] == Compensation.find_nearest( data_LC_2[:, 0], volt[1, -1]))[0][0]],
-                                                            data_LC_3[:, 1][np.where(data_LC_3[:, 0] == Compensation.find_nearest(data_LC_3[:, 0], volt[2, -1]))[0][0]],
-                                                            data_LC_4[:, 1][np.where(data_LC_4[:, 0] == Compensation.find_nearest(data_LC_4[:, 0], volt[3, -1]))[0][0]]]).reshape(4, 1), axis=1)
+                retardance = np.append(retardance, np.array([data_LC_1[:, 1][np.where(data_LC_1[:, 0] == self.find_nearest(data_LC_1[:, 0], volt[0, -1]))[0][0]],
+                                                            data_LC_2[:, 1][np.where(data_LC_2[:, 0] == self.find_nearest( data_LC_2[:, 0], volt[1, -1]))[0][0]],
+                                                            data_LC_3[:, 1][np.where(data_LC_3[:, 0] == self.find_nearest(data_LC_3[:, 0], volt[2, -1]))[0][0]],
+                                                            data_LC_4[:, 1][np.where(data_LC_4[:, 0] == self.find_nearest(data_LC_4[:, 0], volt[3, -1]))[0][0]]]).reshape(4, 1), axis=1)
                 if z < 2:
                     fg_1.set_amplitude(channel=z+1, value=volt[z, -1])
                 else:
@@ -501,7 +502,7 @@ class Compensation():
                 sleep(0.1)
 
                 # measure again
-                parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step, N)
+                parameters, fidelity, i = self.Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast, V_back, wp_mount)
 
                 if fidelity[-1] > stopping_threshold:
                     break
@@ -510,10 +511,10 @@ class Compensation():
                 print('Fidelity got lower')
                 # go back to last voltage
                 volt = np.append(volt, (np.array([volt[0, -1], volt[1, -1], volt[2, -1], volt[3, -1]]) - ( np.arange(4) == z) * try_step).reshape(-1, 1), axis=1)
-                retardance = np.append(retardance, np.array([data_LC_1[:, 1][np.where(data_LC_1[:, 0] == Compensation.find_nearest(data_LC_1[:, 0], volt[0, -1]))[0][0]],
-                                                            data_LC_2[:, 1][np.where(data_LC_2[:, 0] == Compensation.find_nearest( data_LC_2[:, 0], volt[1, -1]))[0][0]],
-                                                            data_LC_3[:, 1][np.where(data_LC_3[:, 0] == Compensation.find_nearest( data_LC_3[:, 0], volt[2, -1]))[0][0]],
-                                                            data_LC_4[:, 1][np.where(data_LC_4[:, 0] == Compensation.find_nearest(data_LC_4[:, 0], volt[3, -1]))[0][0]]]).reshape(4, 1), axis=1)
+                retardance = np.append(retardance, np.array([data_LC_1[:, 1][np.where(data_LC_1[:, 0] == self.find_nearest(data_LC_1[:, 0], volt[0, -1]))[0][0]],
+                                                            data_LC_2[:, 1][np.where(data_LC_2[:, 0] == self.find_nearest( data_LC_2[:, 0], volt[1, -1]))[0][0]],
+                                                            data_LC_3[:, 1][np.where(data_LC_3[:, 0] == self.find_nearest( data_LC_3[:, 0], volt[2, -1]))[0][0]],
+                                                            data_LC_4[:, 1][np.where(data_LC_4[:, 0] == self.find_nearest(data_LC_4[:, 0], volt[3, -1]))[0][0]]]).reshape(4, 1), axis=1)
                 if z < 2:
                     fg_1.set_amplitude(channel=z+1, value=volt[z, -1])
                 else:
@@ -523,10 +524,10 @@ class Compensation():
             # try a lower voltage; same code as up, but with substracting voltage step
             print('Decrease applied voltage')
             volt = np.append(volt, (np.array([volt[0, -1], volt[1, -1], volt[2, -1], volt[3, -1]]) - (np.arange(4) == z) * try_step).reshape(-1, 1), axis=1)
-            retardance = np.append(retardance, np.array([data_LC_1[:, 1][np.where(data_LC_1[:, 0] == Compensation.find_nearest(data_LC_1[:, 0], volt[0, -1]))[0][0]],
-                                                        data_LC_2[:, 1][np.where(data_LC_2[:, 0] == Compensation.find_nearest(data_LC_2[:, 0], volt[1, -1]))[0][0]],
-                                                        data_LC_3[:, 1][np.where(data_LC_3[:, 0] == Compensation.find_nearest(data_LC_3[:, 0], volt[2, -1]))[0][0]],
-                                                        data_LC_4[:, 1][np.where(data_LC_4[:, 0] == Compensation.find_nearest(data_LC_4[:, 0], volt[3, -1]))[0][0]]]).reshape(4, 1), axis=1)
+            retardance = np.append(retardance, np.array([data_LC_1[:, 1][np.where(data_LC_1[:, 0] == self.find_nearest(data_LC_1[:, 0], volt[0, -1]))[0][0]],
+                                                        data_LC_2[:, 1][np.where(data_LC_2[:, 0] == self.find_nearest(data_LC_2[:, 0], volt[1, -1]))[0][0]],
+                                                        data_LC_3[:, 1][np.where(data_LC_3[:, 0] == self.find_nearest(data_LC_3[:, 0], volt[2, -1]))[0][0]],
+                                                        data_LC_4[:, 1][np.where(data_LC_4[:, 0] == self.find_nearest(data_LC_4[:, 0], volt[3, -1]))[0][0]]]).reshape(4, 1), axis=1)
 
             if z < 2:
                 fg_1.set_amplitude(channel=z+1, value=volt[z, -1])
@@ -534,7 +535,7 @@ class Compensation():
                 fg_2.set_amplitude(channel=z-1, value=volt[z, -1])
             sleep(0.1)
 
-            parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step, N)
+            parameters, fidelity, i = self.Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast, V_back, wp_mount)
 
             if fidelity[-1] > stopping_threshold:
                 break
@@ -542,10 +543,10 @@ class Compensation():
             while fidelity[-1] >= fidelity[-2]:
                 print('Fidelity got higher')
                 volt = np.append(volt, (np.array([volt[0, -1], volt[1, -1], volt[2, -1], volt[3, -1]]) - ( np.arange(4) == z) * try_step).reshape(-1, 1), axis=1)
-                retardance = np.append(retardance, np.array([data_LC_1[:, 1][np.where(data_LC_1[:, 0] == Compensation.find_nearest(data_LC_1[:, 0], volt[0, -1]))[0][0]],
-                                                            data_LC_2[:, 1][np.where(data_LC_2[:, 0] == Compensation.find_nearest(data_LC_2[:, 0], volt[1, -1]))[0][0]],
-                                                            data_LC_3[:, 1][np.where(data_LC_3[:, 0] == Compensation.find_nearest(data_LC_3[:, 0], volt[2, -1]))[0][0]],
-                                                            data_LC_4[:, 1][np.where(data_LC_4[:, 0] == Compensation.find_nearest(data_LC_4[:, 0], volt[3, -1]))[0][0]]]).reshape(4, 1), axis=1)
+                retardance = np.append(retardance, np.array([data_LC_1[:, 1][np.where(data_LC_1[:, 0] == self.find_nearest(data_LC_1[:, 0], volt[0, -1]))[0][0]],
+                                                            data_LC_2[:, 1][np.where(data_LC_2[:, 0] == self.find_nearest(data_LC_2[:, 0], volt[1, -1]))[0][0]],
+                                                            data_LC_3[:, 1][np.where(data_LC_3[:, 0] == self.find_nearest(data_LC_3[:, 0], volt[2, -1]))[0][0]],
+                                                            data_LC_4[:, 1][np.where(data_LC_4[:, 0] == self.find_nearest(data_LC_4[:, 0], volt[3, -1]))[0][0]]]).reshape(4, 1), axis=1)
 
                 if z < 2:
                     fg_1.set_amplitude(channel=z+1, value=volt[z, -1])
@@ -553,7 +554,7 @@ class Compensation():
                     fg_2.set_amplitude(channel=z-1, value=volt[z, -1])
                 sleep(0.1)
 
-                parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step, N)
+                parameters, fidelity, i = self.Polarimeter(parameters, fidelity, S_undis, i, home_step, N, angle_fast, V_back, wp_mount)
 
                 if fidelity[-1] > stopping_threshold:
                     break
@@ -561,10 +562,10 @@ class Compensation():
             if fidelity[-1] < fidelity[-2]:
                 print('Fidelity got lower')
                 volt = np.append(volt, (np.array([volt[0, -1], volt[1, -1], volt[2, -1], volt[3, -1]]) + (np.arange(4) == z) * try_step).reshape(-1, 1), axis=1)
-                retardance = np.append(retardance, np.array([data_LC_1[:, 1][np.where(data_LC_1[:, 0] == Compensation.find_nearest(data_LC_1[:, 0], volt[0, -1]))[0][0]],
-                                                            data_LC_2[:, 1][np.where(data_LC_2[:, 0] == Compensation.find_nearest( data_LC_2[:, 0], volt[1, -1]))[0][0]],
-                                                            data_LC_3[:, 1][np.where(data_LC_3[:, 0] == Compensation.find_nearest( data_LC_3[:, 0], volt[2, -1]))[0][0]],
-                                                            data_LC_4[:, 1][np.where(data_LC_4[:, 0] == Compensation.find_nearest(data_LC_4[:, 0], volt[3, -1]))[0][0]]]).reshape(4, 1), axis=1)
+                retardance = np.append(retardance, np.array([data_LC_1[:, 1][np.where(data_LC_1[:, 0] == self.find_nearest(data_LC_1[:, 0], volt[0, -1]))[0][0]],
+                                                            data_LC_2[:, 1][np.where(data_LC_2[:, 0] == self.find_nearest( data_LC_2[:, 0], volt[1, -1]))[0][0]],
+                                                            data_LC_3[:, 1][np.where(data_LC_3[:, 0] == self.find_nearest( data_LC_3[:, 0], volt[2, -1]))[0][0]],
+                                                            data_LC_4[:, 1][np.where(data_LC_4[:, 0] == self.find_nearest(data_LC_4[:, 0], volt[3, -1]))[0][0]]]).reshape(4, 1), axis=1)
 
                 if z < 2:                                                   # set voltage back
                     fg_1.set_amplitude(channel=z+1, value=volt[z, -1])
