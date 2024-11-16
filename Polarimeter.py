@@ -9,14 +9,14 @@ from timeit import default_timer as timer
 import matplotlib.pyplot as plt
 import pandas as pd
 from utils import * 
-# skript for the polarization tomography/ polarimeter
+# script for the polarization tomography/ polarimeter
 
 # General functions
 
 rounds = 50 # number of measurements
 N = 310 # number of samples per measurement
-home_steps = 5 # number of measurement after which he motor is homed again
-angle_fast = 74.42363808*np.pi/180      #  angle of rotating QWP fast axis in radien
+home_steps = 5 # number of measurement after which the motor is homed again
+angle_fast = 74.42363808*np.pi/180      #  angle of rotating QWP fast axis in radians
 S_undis = np.array([1,0,1,0])          # expected polarisation for calculating a fidelity
 
 # Prepare empty arrays
