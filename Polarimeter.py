@@ -36,8 +36,9 @@ wp_mount.SetStageModel("PRM1Z8") # choose right motor
 DAQ_path = "Dev2/ai1" # path to DAQ
 
 i = 0 # mesurement count
+compensation = Compensation()
 for k in range(rounds): # measure Stokes parameters
-    parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step, N)
+    parameters, fidelity, i = compensation.Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step, N)
 
 wp_mount.obj.send_comm_data(0x0465,b'1',1)      # stop rotation
 
