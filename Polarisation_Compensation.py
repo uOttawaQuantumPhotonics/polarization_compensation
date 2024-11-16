@@ -140,7 +140,7 @@ for k in range(rounds):
     # tries little voltage adjustments for all LCVRs
     parameters, fidelity, retardance, volt, i = Compensation.Fine_Tuning(parameters, fidelity, S_undis, retardance, volt, try_step, i, home_step, N, angle_fast,stopping_threshold, V_back, fg_1, fg_2, data_LC_1, data_LC_2, data_LC_3, data_LC_4, wp_mount, DAQ_path)  
 
-print('Finial fidelity: ', fidelity[-1])
+print('Final fidelity: ', fidelity[-1])
  
 wp_mount.obj.send_comm_data(0x0465, b'1', 1)       # stop rotation
 fg_1.set_channels(channel1=False, channel2=False)  # turn output of jds6600 off
