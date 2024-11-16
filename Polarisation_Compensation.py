@@ -43,6 +43,8 @@ retardance = np.empty(shape=(4, 0))  # retardances of LCVRs
 volt = np.empty(shape=(4, 0))        # voltages applied to get the retardances 
 S_dis = np.empty(shape=(4,0))
 
+# Create an instance of the Compensation class
+compensation = Compensation()
 
 # import characterisation of the LCs
 data_LC_1 = np.genfromtxt('Data_LC/Compensation_LC_1.csv',skip_header=1, delimiter=',', dtype=None)
@@ -73,22 +75,22 @@ fg_2.connect()
 fg_2.set_channels(channel1=False, channel2=False)  # turn output of jds6600 off
 
 # set starting voltage
-fg_1.set_amplitude(channel=1, value=data_LC_1[:, 0][np.where(data_LC_1[:, 1] == Compensation.find_nearest(data_LC_1[:, 1], start_ret))[0][0]])
-fg_1.set_amplitude(channel=2, value=data_LC_2[:, 0][np.where(data_LC_2[:, 1] == Compensation.find_nearest(data_LC_2[:, 1], start_ret))[0][0]])
-fg_2.set_amplitude(channel=1, value=data_LC_3[:, 0][np.where(data_LC_3[:, 1] == Compensation.find_nearest(data_LC_3[:, 1], start_ret))[0][0]])
-fg_2.set_amplitude(channel=2, value=data_LC_4[:, 0][np.where(data_LC_4[:, 1] == Compensation.find_nearest(data_LC_4[:, 1], start_ret))[0][0]])
+fg_1.set_amplitude(channel=1, value=data_LC_1[:, 0][np.where(data_LC_1[:, 1] == compensation.find_nearest(data_LC_1[:, 1], start_ret))[0][0]])
+fg_1.set_amplitude(channel=2, value=data_LC_2[:, 0][np.where(data_LC_2[:, 1] == compensation.find_nearest(data_LC_2[:, 1], start_ret))[0][0]])
+fg_2.set_amplitude(channel=1, value=data_LC_3[:, 0][np.where(data_LC_3[:, 1] == compensation.find_nearest(data_LC_3[:, 1], start_ret))[0][0]])
+fg_2.set_amplitude(channel=2, value=data_LC_4[:, 0][np.where(data_LC_4[:, 1] == compensation.find_nearest(data_LC_4[:, 1], start_ret))[0][0]])
 
 # save starting voltage
-volt = np.append(volt, np.array([data_LC_1[:, 0][np.where(data_LC_1[:, 1] == Compensation.find_nearest(data_LC_1[:, 1], start_ret))[0][0]],
-                                 data_LC_2[:, 0][np.where(data_LC_2[:, 1] == Compensation.find_nearest(data_LC_2[:, 1], start_ret))[0][0]],
-                                 data_LC_3[:, 0][np.where(data_LC_3[:, 1] == Compensation.find_nearest(data_LC_3[:, 1], start_ret))[0][0]],
-                                 data_LC_4[:, 0][np.where(data_LC_4[:, 1] == Compensation.find_nearest(data_LC_4[:, 1], start_ret))[0][0]]]).reshape(4, 1), axis=1)
+volt = np.append(volt, np.array([data_LC_1[:, 0][np.where(data_LC_1[:, 1] == compensation.find_nearest(data_LC_1[:, 1], start_ret))[0][0]],
+                                 data_LC_2[:, 0][np.where(data_LC_2[:, 1] == compensation.find_nearest(data_LC_2[:, 1], start_ret))[0][0]],
+                                 data_LC_3[:, 0][np.where(data_LC_3[:, 1] == compensation.find_nearest(data_LC_3[:, 1], start_ret))[0][0]],
+                                 data_LC_4[:, 0][np.where(data_LC_4[:, 1] == compensation.find_nearest(data_LC_4[:, 1], start_ret))[0][0]]]).reshape(4, 1), axis=1)
 
 # save starting retardance
-retardance = np.append(retardance, np.array([data_LC_1[:, 1][np.where(data_LC_1[:, 1] == Compensation.find_nearest(data_LC_1[:, 1], start_ret))[0][0]],
-                                             data_LC_2[:, 1][np.where(data_LC_2[:, 1] == Compensation.find_nearest(data_LC_2[:, 1], start_ret))[0][0]],
-                                             data_LC_3[:, 1][np.where(data_LC_3[:, 1] == Compensation.find_nearest(data_LC_3[:, 1], start_ret))[0][0]],
-                                             data_LC_4[:, 1][np.where(data_LC_4[:, 1] == Compensation.find_nearest(data_LC_4[:, 1], start_ret))[0][0]]]).reshape(4, 1), axis=1)
+retardance = np.append(retardance, np.array([data_LC_1[:, 1][np.where(data_LC_1[:, 1] == compensation.find_nearest(data_LC_1[:, 1], start_ret))[0][0]],
+                                             data_LC_2[:, 1][np.where(data_LC_2[:, 1] == compensation.find_nearest(data_LC_2[:, 1], start_ret))[0][0]],
+                                             data_LC_3[:, 1][np.where(data_LC_3[:, 1] == compensation.find_nearest(data_LC_3[:, 1], start_ret))[0][0]],
+                                             data_LC_4[:, 1][np.where(data_LC_4[:, 1] == compensation.find_nearest(data_LC_4[:, 1], start_ret))[0][0]]]).reshape(4, 1), axis=1)
 
 
 # set function generators in the right mode
@@ -117,12 +119,12 @@ sleep(0.1)
 i = 0                               # Set measurement counter to zero
 
 # Measure polarisation
-parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step, N)
+parameters, fidelity, i = compensation.Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step, N)
 
 j = 0 # counter for iterations before fine tuning, compensation stops, when j == 10 -> no solution can be found
 while fidelity[-1] < finetuning_threshold:
     # Calculate retardances and voltages
-    retardance, volt, S_dis = Compensation.Compensate(parameters,S_dis, S_undis, retardance, volt, j, min_ret, max_ret, data_LC_1, data_LC_2, data_LC_3)
+    retardance, volt, S_dis = compensation.Compensate(parameters,S_dis, S_undis, retardance, volt, j, min_ret, max_ret, data_LC_1, data_LC_2, data_LC_3)
     # apply voltages
     fg_1.set_amplitude(channel=1, value=volt[0, -1])
     fg_1.set_amplitude(channel=2, value=volt[1, -1])
@@ -130,7 +132,7 @@ while fidelity[-1] < finetuning_threshold:
     fg_2.set_amplitude(channel=2, value=volt[3, -1])
     sleep(0.1)
     # Measure polarisation
-    parameters, fidelity, i = Compensation.Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step, N)
+    parameters, fidelity, i = compensation.Polarimeter(parameters, fidelity, S_undis, i, angle_fast,  V_back, wp_mount, DAQ_path, home_step, N)
     j = j+1
     if j == 10:
         break
@@ -138,7 +140,7 @@ while fidelity[-1] < finetuning_threshold:
 for k in range(rounds):
     print('Fine Tuning, round:', k+1)
     # tries little voltage adjustments for all LCVRs
-    parameters, fidelity, retardance, volt, i = Compensation.Fine_Tuning(parameters, fidelity, S_undis, retardance, volt, try_step, i, home_step, N, angle_fast,stopping_threshold, V_back, fg_1, fg_2, data_LC_1, data_LC_2, data_LC_3, data_LC_4, wp_mount, DAQ_path)  
+    parameters, fidelity, retardance, volt, i = compensation.Fine_Tuning(parameters, fidelity, S_undis, retardance, volt, try_step, i, home_step, N, angle_fast,stopping_threshold, V_back, fg_1, fg_2, data_LC_1, data_LC_2, data_LC_3, data_LC_4, wp_mount, DAQ_path)  
 
 print('Final fidelity: ', fidelity[-1])
  
