@@ -140,7 +140,7 @@ while fidelity[-1] < finetuning_threshold:
 for k in range(rounds):
     print('Fine Tuning, round:', k+1)
     # tries little voltage adjustments for all LCVRs
-    parameters, fidelity, retardance, volt, i = compensation.Fine_Tuning(parameters, fidelity, S_undis, retardance, volt, try_step, i, home_step, N, angle_fast,stopping_threshold, V_back, fg_1, fg_2, data_LC_1, data_LC_2, data_LC_3, data_LC_4, wp_mount, DAQ_path)  
+    parameters, fidelity, retardance, volt, i = compensation.Fine_Tuning(parameters, fidelity, S_undis, retardance, volt, try_step, i, home_step, N, angle_fast,stopping_threshold, V_back, fg_1, fg_2, data_LC_1, data_LC_2, data_LC_3, data_LC_4, wp_mount)  
 
 print('Final fidelity: ', fidelity[-1])
  
