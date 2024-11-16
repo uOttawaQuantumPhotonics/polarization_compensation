@@ -15,8 +15,8 @@ from time import sleep
 import jds6600
 plt.rcParams.update({'font.size': 22})
 
-# Fuctions to controll Rotation Motor
-# you will need to download and instal =l Thorlabs APT software if you do not already have it
+# Fuctions to control Rotation Motor
+# you will need to download and install Thorlabs APT software if you do not already have it
 # after installation of APT, open anaconda prompt and execute the following command
 # pip install --user pylablib
 # Thorlabs runs on APT communications protocol
