@@ -390,7 +390,7 @@ class Compensation():
                 s_dis[3] * (np.cos(delta[2])*np.sin(delta[0])+np.cos(delta[0])*np.cos(delta[1])*np.sin(delta[2])) - s_undis[2],
 
                 s_dis[1] * (np.cos(delta[2])*np.cos(delta4)*np.sin(delta[1]) + np.cos(delta[1])*np.sin(delta4)) +
-                s_dis[2] * (-np.cos(delta[1])*np.cos(delta[2])*np.cos(delta4)*np.sin(delta[0]) - np.cos(delta[0])*np.cos(delta4)*d(delta[2]) + np.sin(delta[0])*np.sin(delta[1])*np.sin(delta4)) +
+                s_dis[2] * (-np.cos(delta[1])*np.cos(delta[2])*np.cos(delta4)*np.sin(delta[0]) - np.cos(delta[0])*np.cos(delta4)*np.sin(delta[2]) + np.sin(delta[0])*np.sin(delta[1])*np.sin(delta4)) +
                 s_dis[3] * (-np.cos(delta4)*np.sin(delta[0])*np.sin(delta[2]) + np.cos(delta[0])*(np.cos(delta[1])*np.cos(delta[2])*np.cos(delta4)-np.sin(delta[1])*np.sin(delta4))) - s_undis[3]]
 
     # Compensation Calculation
